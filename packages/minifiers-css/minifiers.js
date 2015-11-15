@@ -109,6 +109,8 @@ var rewriteRules = function (rules) {
     if (! basePath.match(/^\/?packages\//i))
         basePath = "/";
 
+    basePath = relativeToSiteRootUrl(basePath); 
+
     _.each(rule.declarations, function(declaration, declarationIndex) {
       var parts, resource, absolutePath, quotes, oldCssUrl, newCssUrl;
       var value = declaration.value;
@@ -167,5 +169,32 @@ var pathJoin = function (a, b) {
 
 var pathDirname = function (p) {
   return toStandardPath(path.dirname(toOSPath(p)));
+};
+
+var rootUrlPathPrefix = function() {
+  if (process.env.ROOT_URL) {
+    var ROOT_URL = Meteor.absoluteUrl.defaultOptions.rootUrl || process.env.ROOT_URL;
+    if (ROOT_URL) {
+      var parsedUrl = Npm.require('url').parse(ROOT_URL);
+      // Sometimes users try to pass, eg, ROOT_URL=mydomain.com.
+      if (!parsedUrl.host) {
+        throw Error("$ROOT_URL, if specified, must be an URL");
+      }
+      var pathPrefix = parsedUrl.pathname;
+      if (pathPrefix.slice(-1) === '/') {
+        // remove trailing slash (or turn "/" into "")
+        pathPrefix = pathPrefix.slice(0, -1);
+      }
+      return pathPrefix;
+    } else {
+      return "";
+    }
+  }
+}
+
+var relativeToSiteRootUrl = function (link) {
+  if (link.substr(0, 1) === "/")
+    link = rootUrlPathPrefix() + link;
+  return link;
 };
 
