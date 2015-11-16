@@ -172,29 +172,35 @@ var pathDirname = function (p) {
 };
 
 var rootUrlPathPrefix = function() {
-  if (process.env.ROOT_URL) {
-    var ROOT_URL = Meteor.absoluteUrl.defaultOptions.rootUrl || process.env.ROOT_URL;
-    if (ROOT_URL) {
-      var parsedUrl = Npm.require('url').parse(ROOT_URL);
-      // Sometimes users try to pass, eg, ROOT_URL=mydomain.com.
-      if (!parsedUrl.host) {
-        throw Error("$ROOT_URL, if specified, must be an URL");
-      }
-      var pathPrefix = parsedUrl.pathname;
-      if (pathPrefix.slice(-1) === '/') {
-        // remove trailing slash (or turn "/" into "")
-        pathPrefix = pathPrefix.slice(0, -1);
-      }
-      return pathPrefix;
-    } else {
-      return "";
+  var ROOT_URL = Meteor.absoluteUrl.defaultOptions.rootUrl || process.env.ROOT_URL;
+  if (ROOT_URL) {
+    var parsedUrl = Npm.require("url").parse(ROOT_URL);
+    // Sometimes users try to pass, eg, ROOT_URL=mydomain.com.
+    if (!parsedUrl.host) {
+      throw Error("$ROOT_URL, if specified, must be an URL");
     }
+    var pathPrefix = parsedUrl.pathname;
+    if (pathPrefix.slice(-1) === "/") {
+      // remove trailing slash (or turn "/" into "")
+      pathPrefix = pathPrefix.slice(0, -1);
+    }
+    return pathPrefix;
+  } else {
+    var ROOT_URL_PATH_PREFIX = process.env.ROOT_URL_PATH_PREFIX || "";
+    if (ROOT_URL_PATH_PREFIX.length > 1) {
+      if (ROOT_URL_PATH_PREFIX.slice(-1) === "/")
+        ROOT_URL_PATH_PREFIX = ROOT_URL_PATH_PREFIX.slice(0, -1);
+      if (ROOT_URL_PATH_PREFIX.charAt(0) !== "/")
+        ROOT_URL_PATH_PREFIX = "/" + ROOT_URL_PATH_PREFIX;
+    }
+    return ROOT_URL_PATH_PREFIX;
   }
 }
 
 var relativeToSiteRootUrl = function (link) {
-  if (link.substr(0, 1) === "/")
+  if (link.substr(0, 1) === "/") {
     link = rootUrlPathPrefix() + link;
+  }
   return link;
 };
 
